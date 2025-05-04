@@ -27,35 +27,44 @@ languages.forEach(({ code, name }) => {
 // Load available voices
 function loadVoices() {
     voices = speechSynthesis.getVoices();
-
-    // group voices (Google, Microsoft)
+  
+    // Group Voices (Google, Microsoft, Other)
     const groupedVoices = {
-        Google: [],
-        Microsoft: [],
-        Other: []
+      Google: [],
+      Microsoft: [],
+      Other: []
     };
-
+  
     voices.forEach((voice, index) => {
-        const provider = voice.name.toLowerCase().includes('google') ? 'Google' :
-                         voice.name.toLowerCase().includes('microsoft') ? 'Microsoft' :
-                         'Other';
-        groupedVoices[provider].push({ voice, index });
+      const provider = voice.name.toLowerCase().includes('google') ? 'Google' :
+                       voice.name.toLowerCase().includes('microsoft') ? 'Microsoft' :
+                       'Other';
+      groupedVoices[provider].push({ voice, index });
     });
-
-    // Sort voices asc within each group
-    Object.keys(groupedVoices).forEach(group => {
-        groupedVoices[group].sort((a, b) => a.voice.name.localeCompare(b.voice.name));
+  
+    // Sort Voices asc
+    Object.keys(groupedVoices).forEach(provider => {
+      groupedVoices[provider].sort((a, b) => a.voice.name.localeCompare(b.voice.name)); // Alphabetische Sortierung
     });
-
-    // generate HTML for each group
-    voiceSelect.innerHTML = Object.entries(groupedVoices).map(([group, items]) => {
-        if (items.length === 0) return '';
-        const options = items.map(({ voice, index }) =>
-            `<option value="${index}">${voice.name} (${voice.lang})</option>`
-        ).join('');
-        return `<optgroup label="${group} Voices">${options}</optgroup>`;
+  
+    // Voices Dropdown
+    voiceSelect.innerHTML = Object.keys(groupedVoices).map(provider => {
+      if (groupedVoices[provider].length === 0) return ''; // Wenn keine Stimmen für eine Gruppe vorhanden sind, überspringen
+  
+      return `
+        <optgroup label="${provider}">
+          ${groupedVoices[provider].map(({ voice, index }) => {
+            const isDefault = voice.name === 'Google UK English Female'; // Stimme prüfen
+            const displayName = voice.name.replace(/^Google |^Microsoft /, ''); // Anbieter entfernen
+            return `<option value="${index}" ${isDefault ? 'selected' : ''}>
+                      ${displayName} (${voice.lang})
+                    </option>`;
+          }).join('')}
+        </optgroup>
+      `;
     }).join('');
-}
+  }
+  
 
 speechSynthesis.onvoiceschanged = loadVoices;
 loadVoices();
